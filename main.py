@@ -16,8 +16,8 @@ def get_forum_home():
             "category_name": category_name,
             "forums": []
         }
-        forum_tbody = category.select(".box-content table tbody")
-        for forum_tr in forum_tbody:
+        forum_trs = category.select(".box-content table tbody tr")
+        for forum_tr in forum_trs:
             forum_name = forum_tr.select_one("tr .tcl .intd .tclcon h3").text.split("\n")[0]
             forum_id = forum_tr.select_one("tr .tcl .intd .tclcon h3 a").get("href").split("/discuss/")[1].split("/")[0]
             forum_desc_tag = forum_tr.select_one("tr .tcl .intd .tclcon")
@@ -45,7 +45,53 @@ def print_forum_info(categories: list):
         print(f"=== {category["category_name"]} === ({len(category["forums"])} forum{testing})")
         for forum in category["forums"]:
             print(f"> {forum["title"]} ({forum["topic_count"]} topics, {forum["post_count"]} posts) (ID {forum["id"]})")
-            print(forum["description"])
+            if len(forum["description"]) > 0:
+                print(f"   {forum["description"]}")
+        print("\n")
+def get_forum(forum_id):
+    request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}")
+    req_text = request.text
+    soup = BeautifulSoup(req_text, features="html.parser")
+    topics = []
+    vf_soup = soup.select_one("#vf")
+    forum_name = vf_soup.select_one(".box .box-head h4 span").text
+    topic_trs = soup.select("tr")
+    topic_trs.pop(0)
+    for tr in topic_trs:
+        topic_name = tr.select_one(".tcl .tclcon h3 a").text
+        topic_id = tr.select_one(".tcl .tclcon h3 a").get("href").split("/discuss/topic/")[1].split("/")[0]
+        try:
+            topic_replies = tr.select_one(".tc2").text
+        except AttributeError:
+            topic_replies = 0
+        try:
+            topic_views = tr.select_one(".tc3").text
+        except AttributeError:
+            topic_views = 0
+
+        topic_replies = int(topic_replies)
+        topic_views = int(topic_views)
+
+        topics.append({
+            "id": topic_id,
+            "name": topic_name,
+            "replies": topic_replies,
+            "views": topic_views
+        })
+    return {
+        "forum_name": forum_name,
+        "topics": topics
+    }
 
 categories = get_forum_home()
 print_forum_info(categories)
+while True:
+    forum_id = input(f"Type a forum ID: ")
+    try:
+        forum_id = int(forum_id)
+        break
+    except ValueError:
+        print("Whoops, that's not a valid forum ID.")
+
+print(get_forum(forum_id))
+
