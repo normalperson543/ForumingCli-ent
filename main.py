@@ -1,7 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
+from termcolor import colored, cprint
 
 def get_forum_home():
+    print(colored("Get forum homepage", "grey"))
     request = requests.get("https://scratch.mit.edu/discuss", verify=False) #because of the stupid BYOD
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
@@ -39,16 +41,17 @@ def get_forum_home():
     return categories
 
 def print_forum_info(categories: list):
-    print("Discussion Forums Home")
+    print(colored("Discussion Forums Home", "white", "on_blue"))
     for category in categories:
         testing = not len(category["forums"]) == 1 and "s"
-        print(f"=== {category["category_name"]} === ({len(category["forums"])} forum{testing})")
+        print(f"=== {colored(category["category_name"], "white", "on_green")} === ({len(category["forums"])} forum{testing})")
         for forum in category["forums"]:
-            print(f"> {forum["title"]} ({forum["topic_count"]} topics, {forum["post_count"]} posts) (ID {forum["id"]})")
+            print(f"> {colored(forum["title"], "green")} ({colored(f"{forum["topic_count"]} topics, {forum["post_count"]} posts, (ID {forum["id"]}", "blue")})")
             if len(forum["description"]) > 0:
                 print(f"   {forum["description"]}")
         print("\n")
 def get_forum(forum_id):
+    print(colored(f"Get forum {forum_id}", "grey"))
     request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}", verify=False)
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
@@ -83,10 +86,10 @@ def get_forum(forum_id):
         "topics": topics
     }
 def print_forum(forum):
-    print(f'Current forum: {forum["forum_name"]}\n')
+    print(f'Current forum: {colored(forum["forum_name"], "white", "on_green")}\n')
     for topic in forum["topics"]:
-        print(f"> {topic["name"]}")
-        print(f"  {topic["replies"]}+ replies, {topic["views"]}+ views")
+        print(f"> {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")})")
+        cprint(f"  {topic["replies"]}+ replies, {topic["views"]}+ views", "blue")
 categories = get_forum_home()
 print_forum_info(categories)
 while True:
