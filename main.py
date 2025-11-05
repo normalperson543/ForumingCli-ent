@@ -110,7 +110,7 @@ def get_topic(topic_id):
             "poster": {
                 "username": poster_username
             },
-            "contents": contents
+            "contents": str(contents)
         })
     return {
         "name": topic_name,
@@ -121,7 +121,31 @@ def print_topic(topic):
     print(f"Current topic: {colored(topic["name"], "white", "on_green")}")
     for post in topic["posts"]:
         print(f"{colored(f"{post["poster"]["username"]}", "green")} {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
-        print(post["contents"].text)
+        raw_text = post["contents"]
+        text = raw_text.replace("<br/>", "\n")
+        text = text.replace("</br>", "\n")
+        text = text.replace("<br>", "\n")
+        text = text.replace('<div class="post_body_html">', "")
+        text = text.replace('</div>', "")
+        text = text.replace('<div style="text-align:center;">', "") #unsupported
+        text = text.replace('<span class="bb-big">', "")  # unsupported
+        text = text.replace('<span class="bb-small">', "")  # unsupported
+        text = text.replace('<ul>', "")  # unsupported
+        text = text.replace('</ul>', "")  # unsupported
+        text = text.replace('<blockquote>', "")  # unsupported (for now)
+        text = text.replace('</blockquote>', "\n")
+        text = text.replace('<li>', "* ")  # bulleted stuff will be replaced with a dot
+        text = text.replace('</li>', "")
+        text = text.replace('<span class="bb-bold">', "\033[1m")
+        text = text.replace('<p class="bb-quote-author">', "\033[1m") #the quote author will be bolded, just like in web
+        text = text.replace('<span class="bb-italic">', "\x1B[3m")  # unsupported
+        text = text.replace('</span>', "\033[0m\x1B[0m")
+        text = text.replace('</p>', "")
+        text = text.replace('<a href="', " ") #remove link tag (but leave a space)
+        text = text.replace('">', "") #mmm love jank
+        text = text.replace('</a>', "")
+        text = text
+        print(text)
         print("\n")
 
 categories = get_forum_home()
