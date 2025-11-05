@@ -90,6 +90,36 @@ def print_forum(forum):
     for topic in forum["topics"]:
         print(f"> {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")})")
         cprint(f"  {topic["replies"]}+ replies, {topic["views"]}+ views", "blue")
+
+def get_topic(topic_id):
+    request = requests.get(f"https://scratch.mit.edu/discuss/topic/{topic_id}")
+    req_text = request.text
+    soup = BeautifulSoup(req_text, features="html.parser")
+    posts = []
+    linkst_li = soup.select(".linkst ul li")
+    topic_name = linkst_li[2].text
+    blockposts = soup.select(".blockpost")
+    for bp in blockposts:
+        friendly_date = bp.select_one(".box .box-head a").text
+        poster_username = bp.select_one(".username").text
+        contents = bp.select_one(".post_body_html")
+        post_index = int(bp.select_one(".box .box-head .conr").text[1:])
+        posts.append({
+            "post_index": post_index,
+            "friendly_date": friendly_date,
+            "poster": {
+                "username": poster_username
+            },
+            "contents": contents
+        })
+    return {
+        "name": topic_name,
+        "posts": posts
+    }
+
+def print_topic(topic):
+    print(f"Current topic: {colored(topic["name"], "white", "on_green")}\n")
+
 categories = get_forum_home()
 print_forum_info(categories)
 while True:
