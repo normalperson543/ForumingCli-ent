@@ -118,7 +118,11 @@ def get_topic(topic_id):
     }
 
 def print_topic(topic):
-    print(f"Current topic: {colored(topic["name"], "white", "on_green")}\n")
+    print(f"Current topic: {colored(topic["name"], "white", "on_green")}")
+    for post in topic["posts"]:
+        print(f"{colored(f"{post["poster"]["username"]}", "green")} {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
+        print(post["contents"].text)
+        print("\n")
 
 categories = get_forum_home()
 print_forum_info(categories)
@@ -132,5 +136,14 @@ while True:
 
 forum = get_forum(forum_id)
 print_forum(forum)
+while True:
+    topic_id = input(f"Type a topic ID: ")
+    try:
+        topic_id = int(topic_id)
+        break
+    except ValueError:
+        print("Whoops, that's not a valid topic ID.")
 
+topic = get_topic(topic_id)
+print_topic(topic)
 
