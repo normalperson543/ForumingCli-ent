@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from termcolor import colored, cprint
 import os
+import webbrowser
 
 def get_forum_home():
     print(colored("Get forum homepage", "blue"))
@@ -12,6 +13,8 @@ def get_forum_home():
     categories = []
     # Let's get the forums first.
     idx1 = soup.select_one("#idx1") #get the container with the categories
+    if not idx1:
+        return categories
     for category in idx1.select(".box"):
         #forum_tr.select_one("tr .tcl .intd .tclcon h3").text.split("\n")[0]
         category_name = category.select_one(".box-head h4").text.split("\nToggle shoutbox\n                ")[1].split("\n")[0]
@@ -51,6 +54,9 @@ def print_forum_info(categories: list):
             if len(forum["description"]) > 0:
                 print(f"   {forum["description"]}")
         print("\n")
+    if len(categories) == 0:
+        cprint("Warning: We couldn't get the forum homepage.", "white", "on_red")
+        print("This may be due to the forums being down. Please try again later.")
 def get_forum(forum_id, page = 1):
     print(colored(f"Get forum {forum_id}", "blue"))
     request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}?page={page}", verify=False)
@@ -111,7 +117,10 @@ def get_topic(topic_id, page = 1):
     last_page = 1
     if pagination:
         last_page = int(pagination.contents[-4].text)
-
+    follow_button = soup.select_one(".unfollow-button") #Due to a bug, follow button appears on logged out and open topics
+    closed = True
+    if follow_button:
+        closed = False
     blockposts = soup.select(".blockpost")
     for bp in blockposts:
         friendly_date = bp.select_one(".box .box-head a").text
@@ -131,11 +140,16 @@ def get_topic(topic_id, page = 1):
         "current_page": int(page),
         "id": int(topic_id),
         "pages": last_page,
-        "posts": posts
+        "posts": posts,
+        "closed": closed
     }
 
 def print_topic(topic):
     print(f"Current topic: {colored(topic["name"], "white", "on_green")} (page {topic["current_page"]} of {topic["pages"]})")
+    if topic["closed"]:
+        cprint("Topic CLOSED\n", "red")
+    else:
+        cprint("Topic OPEN\n", "green")
     for post in topic["posts"]:
         print(f"{colored(f"{post["poster"]["username"]}", "green")} {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
         raw_text = post["contents"]
@@ -268,6 +282,41 @@ def accept_user_input():
             print("This is the first page.")
             return
         print("You need to be a topic or forum to go back a page.")
+        return
+    if command_split[0] == "o":
+        if current_page == "t":
+            cprint("Opening in the browser.", "blue")
+            webbrowser.open(f"https://scratch.mit.edu/discuss/topic/{topic["id"]}")
+            return
+        if current_page == "f":
+            cprint("Opening in the browser.", "blue")
+            webbrowser.open(f"https://scratch.mit.edu/discuss/{forum["id"]}")
+        if current_page == "h":
+            cprint("Opening in the browser.", "blue")
+            webbrowser.open(f"https://scratch.mit.edu/discuss")
+    if command_split[0] == "p":
+        try:
+            page = int(command_split[1])
+        except ValueError:
+            print("That is not a valid page.")
+            return
+        if current_page == "t":
+            if page >= 1 and page <= topic["pages"]:
+                topic = get_topic(topic["id"], page)
+                os.system("clear")
+                print_topic(topic)
+                return
+            print("That is not a valid page.")
+            return
+        if current_page == "f":
+            if page >= 1 and page <= forum["pages"]:
+                forum = get_forum(forum["id"], page)
+                os.system('clear')
+                print_forum(forum)
+                return
+            print("That is not a valid page.")
+            return
+        print("You need to be a topic or forum to jump pages.")
         return
     if command_split[0].find("#") == 0 and current_page == "f":
         try:
