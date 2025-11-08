@@ -198,8 +198,16 @@ def get_topic(topic_id, page=1, suppress_request_msg = False):
         poster_status = bp.select_one(".postleft dl").contents[4].strip()
         poster_post_count = bp.select_one(".postleft dl").contents[6].strip().split(" post")[0]
         contents = bp.select_one(".post_body_html")
+        last_edit_username = ""
+        last_edit_friendly_date = ""
+        postedit = bp.select_one(".postedit")
+        if postedit:
+            postedit_text = postedit.text
+            last_edit_username = postedit_text.split("Last edited by ")[1].split("(")[0]
+            last_edit_friendly_date = postedit_text.split("(")[1].split(")")[0]
+
         post_index = int(bp.select_one(".box .box-head .conr").text[1:])
-        postsignature = bp.select_one(".postsignature")
+
         posts.append({
             "id": id,
             "post_index": post_index,
@@ -208,7 +216,10 @@ def get_topic(topic_id, page=1, suppress_request_msg = False):
                 "username": poster_username,
                 "status": poster_status,
                 "post_count_string": poster_post_count,
-                "signature": str(postsignature)
+            },
+            "last_edit": {
+                "username": last_edit_username,
+                "friendly_date": last_edit_friendly_date,
             },
             "contents": str(contents)
         })
@@ -291,16 +302,12 @@ def print_topic(topic):
     for post in topic["posts"]:
         print(
             f"{colored(f"{post["poster"]["username"]}", "green")} ({colored("Scratcher", "cyan") if post["poster"]["status"] == "Scratcher" else ""}{colored("New Scratcher", "red") if post["poster"]["status"] == "New Scratcher" else ""}{colored("Teacher", "orange") if post["poster"]["status"] == "Teacher" else ""}{colored("ST", "magenta") if post["poster"]["status"] == "Scratch Team" else ""}{colored("Mod", "magenta") if post["poster"]["status"] == "Forum Moderator" else ""}, {colored(post["poster"]["post_count_string"], "blue")} posts) {colored(f"({post["friendly_date"]}, #{post["post_index"]}, ID {post["id"]}", "blue")})")
+        if post["last_edit"]["username"]:
+            cprint(f"Edited by {colored(post["last_edit"]["username"], "green")} on {colored(post["last_edit"]["friendly_date"], "green")}", "white", "on_magenta")
         raw_text = post["contents"]
         text = preproc_text(raw_text)
         print(text)
         print("\n")
-def print_sig(topic, post_index):
-    post = topic["posts"][post_index]
-    raw_sig = post["poster"]["signature"]
-    sig = preproc_text(raw_sig)
-    print(sig)
-    print("\n")
 def accept_user_input():
     answer = input("? ")
     command_split = answer.split(" ")
