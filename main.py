@@ -5,20 +5,22 @@ import os
 import webbrowser
 import sys
 
+
 def get_forum_home():
     print(colored("Get forum homepage", "blue"))
-    request = requests.get("https://scratch.mit.edu/discuss", verify=False) #because of the stupid BYOD
+    request = requests.get("https://scratch.mit.edu/discuss", verify=False)  # because of the stupid BYOD
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
-    #print(soup)
+    # print(soup)
     categories = []
     # Let's get the forums first.
-    idx1 = soup.select_one("#idx1") #get the container with the categories
+    idx1 = soup.select_one("#idx1")  # get the container with the categories
     if not idx1:
         return categories
     for category in idx1.select(".box"):
-        #forum_tr.select_one("tr .tcl .intd .tclcon h3").text.split("\n")[0]
-        category_name = category.select_one(".box-head h4").text.split("\nToggle shoutbox\n                ")[1].split("\n")[0]
+        # forum_tr.select_one("tr .tcl .intd .tclcon h3").text.split("\n")[0]
+        category_name = \
+        category.select_one(".box-head h4").text.split("\nToggle shoutbox\n                ")[1].split("\n")[0]
         category_dict = {
             "category_name": category_name,
             "forums": []
@@ -45,20 +47,25 @@ def get_forum_home():
         categories.append(category_dict)
     return categories
 
+
 def print_forum_info(categories: list):
     print(colored("Discussion Forums Home", "white", "on_blue"))
     for category in categories:
         testing = not len(category["forums"]) == 1 and "s"
-        print(f"=== {colored(category["category_name"], "white", "on_green")} === ({len(category["forums"])} forum{testing})")
+        print(
+            f"=== {colored(category["category_name"], "white", "on_green")} === ({len(category["forums"])} forum{testing})")
         for forum in category["forums"]:
-            print(f"> {colored(forum["title"], "green")} ({colored(f"{forum["topic_count"]} topics, {forum["post_count"]} posts, (ID {forum["id"]}", "blue")})")
+            print(
+                f"> {colored(forum["title"], "green")} ({colored(f"{forum["topic_count"]} topics, {forum["post_count"]} posts, (ID {forum["id"]}", "blue")})")
             if len(forum["description"]) > 0:
                 print(f"   {forum["description"]}")
         print("\n")
     if len(categories) == 0:
         cprint("Warning: We couldn't get the forum homepage.", "white", "on_red")
         print("This may be due to the forums being down. Please try again later.")
-def get_forum(forum_id, page = 1):
+
+
+def get_forum(forum_id, page=1):
     print(colored(f"Get forum {forum_id}", "blue"))
     request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}?page={page}", verify=False)
     req_text = request.text
@@ -133,19 +140,26 @@ def get_forum(forum_id, page = 1):
         "pages": int(last_page),
         "topics": topics
     }
+
+
 def print_forum(forum):
     if forum["id"] == 0:
         cprint("Warning: This forum could not be fetched.", "white", "on_red")
         print("This could be due to a nonexistent forum or the forums are down. Please try again later.")
         return
-    print(f'Current forum: {colored(forum["forum_name"], "white", "on_green")} {colored(f"(page {forum["current_page"]} of {forum["pages"]})", "blue")}\n')
+    print(
+        f'Current forum: {colored(forum["forum_name"], "white", "on_green")} {colored(f"(page {forum["current_page"]} of {forum["pages"]})", "blue")}\n')
     for topic in forum["topics"]:
-        print(f"> (#{forum["topics"].index(topic) + 1}) {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")}) {colored("(Sticky)", "black", "on_yellow") if topic["sticky"] else ""} {colored("Open", "white", "on_green") if not topic["closed"] else colored("Closed", "white", "on_red")}")
+        print(
+            f"> (#{forum["topics"].index(topic) + 1}) {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")}) {colored("(Sticky)", "black", "on_yellow") if topic["sticky"] else ""} {colored("Open", "white", "on_green") if not topic["closed"] else colored("Closed", "white", "on_red")}")
         cprint(f"  {topic["replies"]}+ replies, {topic["views"]}+ views", "blue")
         if not topic["last_post"]["username"] == "":
-            cprint(f"  Last post on {colored(topic["last_post"]["friendly_date"], "green") if len(topic["last_post"]["friendly_date"]) > 0 else "an unknown date"} by {colored(topic["last_post"]["username"], "green")}", "blue")
+            cprint(
+                f"  Last post on {colored(topic["last_post"]["friendly_date"], "green") if len(topic["last_post"]["friendly_date"]) > 0 else "an unknown date"} by {colored(topic["last_post"]["username"], "green")}",
+                "blue")
 
-def get_topic(topic_id, page = 1):
+
+def get_topic(topic_id, page=1):
     print(colored(f"Get topic {topic_id}", "blue"))
     request = requests.get(f"https://scratch.mit.edu/discuss/topic/{topic_id}?page={page}")
     req_text = request.text
@@ -166,7 +180,8 @@ def get_topic(topic_id, page = 1):
     last_page = 1
     if pagination:
         last_page = int(pagination.contents[-4].text)
-    follow_button = soup.select_one(".unfollow-button") #Due to a bug, follow button appears on logged out and open topics
+    follow_button = soup.select_one(
+        ".unfollow-button")  # Due to a bug, follow button appears on logged out and open topics
     closed = True
     if follow_button:
         closed = False
@@ -197,18 +212,21 @@ def get_topic(topic_id, page = 1):
         "closed": closed
     }
 
+
 def print_topic(topic):
     if topic["id"] == 0:
         cprint("Warning: The topic may not exist or the forums are down.", "white", "on_red")
         print("Please try again later.")
         return
-    print(f"Current topic: {colored(topic["name"], "white", "on_green")} (page {topic["current_page"]} of {topic["pages"]})")
+    print(
+        f"Current topic: {colored(topic["name"], "white", "on_green")} (page {topic["current_page"]} of {topic["pages"]})")
     if topic["closed"]:
         cprint("Topic CLOSED\n", "red")
     else:
         cprint("Topic OPEN\n", "green")
     for post in topic["posts"]:
-        print(f"{colored(f"{post["poster"]["username"]}", "green")} ({colored("Scratcher", "cyan") if post["poster"]["status"] == "Scratcher" else ""}{colored("New Scratcher", "red") if post["poster"]["status"] == "New Scratcher" else ""}{colored("Teacher", "orange") if post["poster"]["status"] == "Teacher" else ""}{colored("ST", "magenta") if post["poster"]["status"] == "Scratch Team" else ""}{colored("Mod", "magenta") if post["poster"]["status"] == "Forum Moderator" else ""}) {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
+        print(
+            f"{colored(f"{post["poster"]["username"]}", "green")} ({colored("Scratcher", "cyan") if post["poster"]["status"] == "Scratcher" else ""}{colored("New Scratcher", "red") if post["poster"]["status"] == "New Scratcher" else ""}{colored("Teacher", "orange") if post["poster"]["status"] == "Teacher" else ""}{colored("ST", "magenta") if post["poster"]["status"] == "Scratch Team" else ""}{colored("Mod", "magenta") if post["poster"]["status"] == "Forum Moderator" else ""}) {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
         raw_text = post["contents"]
         text = raw_text.replace("<br/>", "\n")
         text = text.replace('<pre class="blocks">', "")
@@ -217,7 +235,7 @@ def print_topic(topic):
         text = text.replace("<br>", "\n")
         text = text.replace('<div class="post_body_html">', "")
         text = text.replace('</div>', "")
-        text = text.replace('<div style="text-align:center;">', "") #unsupported
+        text = text.replace('<div style="text-align:center;">', "")  # unsupported
         text = text.replace('<span class="bb-big">', "")  # unsupported
         text = text.replace('<span class="bb-small">', "")  # unsupported
         text = text.replace('<p class="bb-quote-author">', "")  # unsupported
@@ -226,7 +244,9 @@ def print_topic(topic):
 
         # Emoji support
 
-        R2_SMILES_URLS = ["//cdn.scratch.mit.edu/scratchr2/static/__5b3e40ec58a840b41702360e9891321b__/djangobb_forum/img/smilies", "//cdn.scratch.mit.edu/scratchr2/static/__35b9adb704d6d778f00a893a1b104339__/djangobb_forum/img/smilies"]
+        R2_SMILES_URLS = [
+            "//cdn.scratch.mit.edu/scratchr2/static/__5b3e40ec58a840b41702360e9891321b__/djangobb_forum/img/smilies",
+            "//cdn.scratch.mit.edu/scratchr2/static/__35b9adb704d6d778f00a893a1b104339__/djangobb_forum/img/smilies"]
         for url in R2_SMILES_URLS:
             text = text.replace(f'<img src="{url}/big_smile.png">', ":D")
             text = text.replace(f'<img src="{url}/mad.png">', ":mad:")
@@ -257,12 +277,13 @@ def print_topic(topic):
         text = text.replace('</em>', "\x1B[0m")
         text = text.replace('</p>', "")
         text = text.replace('<span>', "")
-        text = text.replace('<a href="', "") #remove link tag
-        text = text.replace('">', " ") #mmm love jank
+        text = text.replace('<a href="', "")  # remove link tag
+        text = text.replace('">', " ")  # mmm love jank
         text = text.replace('</a>', "")
         text = text
         print(text)
         print("\n")
+
 
 def accept_user_input():
     answer = input("? ")
@@ -301,14 +322,14 @@ def accept_user_input():
     if command_split[0] == "bb":
         if current_page == "t":
             if previous_forum == 0:
-                #go home
+                # go home
                 categories = get_forum_home()
                 current_page = "h"
                 os.system("clear")
                 print_forum_info(categories)
                 return
             else:
-                #go to that forum.
+                # go to that forum.
                 forum = get_forum(previous_forum)
                 os.system("clear")
                 current_page = "f"
@@ -480,4 +501,3 @@ forum = {}
 categories = {}
 while True:
     accept_user_input()
-
