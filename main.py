@@ -6,8 +6,9 @@ import webbrowser
 import sys
 
 
-def get_forum_home():
-    print(colored("Get forum homepage", "blue"))
+def get_forum_home(suppress_request_msg = False):
+    if not suppress_request_msg:
+        print(colored("Get forum homepage", "blue"))
     request = requests.get("https://scratch.mit.edu/discuss", verify=False)  # because of the stupid BYOD
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
@@ -65,8 +66,9 @@ def print_forum_info(categories: list):
         print("This may be due to the forums being down. Please try again later.")
 
 
-def get_forum(forum_id, page=1):
-    print(colored(f"Get forum {forum_id}", "blue"))
+def get_forum(forum_id, page=1, suppress_request_msg = False):
+    if not suppress_request_msg:
+        print(colored(f"Get forum {forum_id}", "blue"))
     request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}?page={page}", verify=False)
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
@@ -161,8 +163,9 @@ def print_forum(forum):
                 "blue")
 
 
-def get_topic(topic_id, page=1):
-    print(colored(f"Get topic {topic_id}", "blue"))
+def get_topic(topic_id, page=1, suppress_request_msg = False):
+    if not suppress_request_msg:
+        print(colored(f"Get topic {topic_id}", "blue"))
     request = requests.get(f"https://scratch.mit.edu/discuss/topic/{topic_id}?page={page}")
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
@@ -481,8 +484,8 @@ def accept_user_input():
 args = sys.argv
 if len(args) > 1:
     if args[1] == "gh":
-        home = get_forum_home()
-        if args[3] and args[3] == "raw":
+        home = get_forum_home(suppress_request_msg=True)
+        if len(args) >= 3 and args[2] == "raw":
             print(home)
             exit()
         print_forum_info(home)
@@ -496,8 +499,8 @@ if len(args) > 1:
         except ValueError:
             cprint("Error: Please specify a valid topic ID.", "red")
             exit(1)
-        topic = get_topic(id)
-        if args[3] and args[3] == "raw":
+        topic = get_topic(id, suppress_request_msg=True)
+        if len(args) >= 4 and args[3] == "raw":
             print(topic)
             exit()
         print_topic(topic)
@@ -511,8 +514,8 @@ if len(args) > 1:
         except ValueError:
             cprint("Error: Please specify a valid forum ID.", "red")
             exit(1)
-        forum = get_forum(id)
-        if args[3] and args[3] == "raw":
+        forum = get_forum(id, suppress_request_msg=True)
+        if len(args) >= 4 and args[3] == "raw":
             print(forum)
             exit()
         print_forum(forum)
