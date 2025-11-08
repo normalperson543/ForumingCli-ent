@@ -190,7 +190,7 @@ def get_topic(topic_id, page=1):
         friendly_date = bp.select_one(".box .box-head a").text
         poster_username = bp.select_one(".username").text
         poster_status = bp.select_one(".postleft dl").contents[4].strip()
-        poster_post_count = bp.select_one(".postleft dl").contents[6].strip()
+        poster_post_count = bp.select_one(".postleft dl").contents[6].strip().split(" post")[0]
         contents = bp.select_one(".post_body_html")
         post_index = int(bp.select_one(".box .box-head .conr").text[1:])
         posts.append({
@@ -226,7 +226,7 @@ def print_topic(topic):
         cprint("Topic OPEN\n", "green")
     for post in topic["posts"]:
         print(
-            f"{colored(f"{post["poster"]["username"]}", "green")} ({colored("Scratcher", "cyan") if post["poster"]["status"] == "Scratcher" else ""}{colored("New Scratcher", "red") if post["poster"]["status"] == "New Scratcher" else ""}{colored("Teacher", "orange") if post["poster"]["status"] == "Teacher" else ""}{colored("ST", "magenta") if post["poster"]["status"] == "Scratch Team" else ""}{colored("Mod", "magenta") if post["poster"]["status"] == "Forum Moderator" else ""}) {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
+            f"{colored(f"{post["poster"]["username"]}", "green")} ({colored("Scratcher", "cyan") if post["poster"]["status"] == "Scratcher" else ""}{colored("New Scratcher", "red") if post["poster"]["status"] == "New Scratcher" else ""}{colored("Teacher", "orange") if post["poster"]["status"] == "Teacher" else ""}{colored("ST", "magenta") if post["poster"]["status"] == "Scratch Team" else ""}{colored("Mod", "magenta") if post["poster"]["status"] == "Forum Moderator" else ""}, {colored(post["poster"]["post_count_string"], "blue")} posts) {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
         raw_text = post["contents"]
         text = raw_text.replace("<br/>", "\n")
         text = text.replace('<pre class="blocks">', "")
