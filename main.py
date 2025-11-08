@@ -101,13 +101,30 @@ def get_forum(forum_id, page = 1):
         closed = False
         if tr.select_one(".iclosed"):
             closed = True
+
+        last_poster = ""
+        last_poster_friendly_time = ""
+
+        byuser = tr.select_one(".byuser")
+
+        if byuser:
+            last_poster = byuser.text.split("by ")[1]
+
+        tcr_a = tr.select_one(".tcr a")
+        if tcr_a:
+            last_poster_friendly_time = tcr_a.text
+
         topics.append({
             "id": topic_id,
             "name": topic_name,
             "replies": topic_replies,
             "views": topic_views,
             "closed": closed,
-            "sticky": sticky
+            "sticky": sticky,
+            "last_post": {
+                "username": last_poster,
+                "friendly_date": last_poster_friendly_time
+            }
         })
     return {
         "forum_name": forum_name,
@@ -125,6 +142,8 @@ def print_forum(forum):
     for topic in forum["topics"]:
         print(f"> (#{forum["topics"].index(topic) + 1}) {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")}) {colored("(Sticky)", "black", "on_yellow") if topic["sticky"] else ""} {colored("Open", "white", "on_green") if not topic["closed"] else colored("Closed", "white", "on_red")}")
         cprint(f"  {topic["replies"]}+ replies, {topic["views"]}+ views", "blue")
+        if not topic["last_post"]["username"] == "":
+            cprint(f"  Last post on {colored(topic["last_post"]["friendly_date"], "green") if len(topic["last_post"]["friendly_date"]) > 0 else "an unknown date"} by {colored(topic["last_post"]["username"], "green")}", "blue")
 
 def get_topic(topic_id, page = 1):
     print(colored(f"Get topic {topic_id}", "blue"))
@@ -155,13 +174,17 @@ def get_topic(topic_id, page = 1):
     for bp in blockposts:
         friendly_date = bp.select_one(".box .box-head a").text
         poster_username = bp.select_one(".username").text
+        poster_status = bp.select_one(".postleft dl").contents[4].strip()
+        poster_post_count = bp.select_one(".postleft dl").contents[6].strip()
         contents = bp.select_one(".post_body_html")
         post_index = int(bp.select_one(".box .box-head .conr").text[1:])
         posts.append({
             "post_index": post_index,
             "friendly_date": friendly_date,
             "poster": {
-                "username": poster_username
+                "username": poster_username,
+                "status": poster_status,
+                "post_count_string": poster_post_count
             },
             "contents": str(contents)
         })
@@ -185,7 +208,7 @@ def print_topic(topic):
     else:
         cprint("Topic OPEN\n", "green")
     for post in topic["posts"]:
-        print(f"{colored(f"{post["poster"]["username"]}", "green")} {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
+        print(f"{colored(f"{post["poster"]["username"]}", "green")} ({colored("Scratcher", "cyan") if post["poster"]["status"] == "Scratcher" else ""}{colored("New Scratcher", "red") if post["poster"]["status"] == "New Scratcher" else ""}{colored("Teacher", "orange") if post["poster"]["status"] == "Teacher" else ""}{colored("ST", "magenta") if post["poster"]["status"] == "Scratch Team" else ""}{colored("Mod", "magenta") if post["poster"]["status"] == "Forum Moderator" else ""}) {colored(f"({post["friendly_date"]}, #{post["post_index"]}", "blue")})")
         raw_text = post["contents"]
         text = raw_text.replace("<br/>", "\n")
         text = text.replace('<pre class="blocks">', "")
