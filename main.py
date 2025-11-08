@@ -109,13 +109,14 @@ def get_forum(forum_id, page=1):
         if tr.select_one(".iclosed"):
             closed = True
 
+        author = tr.select_one(".tcl .byuser").text.split("by ")[1]
         last_poster = ""
         last_poster_friendly_time = ""
 
-        byuser = tr.select_one(".byuser")
+        lp_byuser = tr.select_one(".tcr .byuser")
 
-        if byuser:
-            last_poster = byuser.text.split("by ")[1]
+        if lp_byuser:
+            last_poster = lp_byuser.text.split("by ")[1]
 
         tcr_a = tr.select_one(".tcr a")
         if tcr_a:
@@ -128,6 +129,7 @@ def get_forum(forum_id, page=1):
             "views": topic_views,
             "closed": closed,
             "sticky": sticky,
+            "author": author,
             "last_post": {
                 "username": last_poster,
                 "friendly_date": last_poster_friendly_time
@@ -152,7 +154,7 @@ def print_forum(forum):
     for topic in forum["topics"]:
         print(
             f"> (#{forum["topics"].index(topic) + 1}) {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")}) {colored("(Sticky)", "black", "on_yellow") if topic["sticky"] else ""} {colored("Open", "white", "on_green") if not topic["closed"] else colored("Closed", "white", "on_red")}")
-        cprint(f"  {topic["replies"]}+ replies, {topic["views"]}+ views", "blue")
+        cprint(f"  by {colored(topic["author"], "green")} - {topic["replies"]}+ replies, {topic["views"]}+ views", "blue")
         if not topic["last_post"]["username"] == "":
             cprint(
                 f"  Last post on {colored(topic["last_post"]["friendly_date"], "green") if len(topic["last_post"]["friendly_date"]) > 0 else "an unknown date"} by {colored(topic["last_post"]["username"], "green")}",
