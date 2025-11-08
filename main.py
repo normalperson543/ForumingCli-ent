@@ -51,12 +51,16 @@ def print_forum_info(categories: list):
             if len(forum["description"]) > 0:
                 print(f"   {forum["description"]}")
         print("\n")
-def get_forum(forum_id):
+def get_forum(forum_id, page = 1):
     print(colored(f"Get forum {forum_id}", "blue"))
-    request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}", verify=False)
+    request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}?page={page}", verify=False)
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
     topics = []
+    pagination = soup.select_one(".pagination")
+    last_page = 1
+    if pagination:
+        last_page = int(pagination.contents[-4].text)
     vf_soup = soup.select_one("#vf")
     forum_name = vf_soup.select_one(".box .box-head h4 span").text
     topic_trs = soup.select("tr")
@@ -84,12 +88,15 @@ def get_forum(forum_id):
         })
     return {
         "forum_name": forum_name,
+        "id": int(forum_id),
+        "current_page": int(page),
+        "pages": int(last_page),
         "topics": topics
     }
 def print_forum(forum):
-    print(f'Current forum: {colored(forum["forum_name"], "white", "on_green")}\n')
+    print(f'Current forum: {colored(forum["forum_name"], "white", "on_green")} {colored(f"(page {forum["current_page"]} of {forum["pages"]})", "blue")}\n')
     for topic in forum["topics"]:
-        print(f"> {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")})")
+        print(f"> (#{forum["topics"].index(topic) + 1}) {colored(topic["name"], "green")} (ID {colored(topic["id"], "blue")})")
         cprint(f"  {topic["replies"]}+ replies, {topic["views"]}+ views", "blue")
 
 def get_topic(topic_id, page = 1):
@@ -227,10 +234,17 @@ def accept_user_input():
     if command_split[0] == "n":
         if current_page == "t":
             if topic["current_page"] != topic["pages"]:
-                breakpoint()
                 topic = get_topic(topic["id"], topic["current_page"] + 1)
                 os.system("clear")
                 print_topic(topic)
+                return
+            print("This is the last page.")
+            return
+        if current_page == "f":
+            if forum["current_page"] != forum["pages"]:
+                forum = get_forum(forum["id"], forum["current_page"] + 1)
+                os.system("clear")
+                print_forum(forum)
                 return
             print("This is the last page.")
             return
@@ -245,8 +259,31 @@ def accept_user_input():
                 return
             print("This is the first page.")
             return
+        if current_page == "f":
+            if forum["current_page"] != 1:
+                forum = get_forum(forum["id"], forum["current_page"] - 1)
+                os.system('clear')
+                print_forum(forum)
+                return
+            print("This is the first page.")
+            return
         print("You need to be a topic or forum to go back a page.")
         return
+    if command_split[0].find("#") == 0 and current_page == "f":
+        try:
+            index_to_get = int(command_split[0].split("#")[1])
+        except ValueError:
+            print("That is not a valid index.")
+            return
+        try:
+            topic_id = forum["topics"][index_to_get + 1]["id"]
+            topic = get_topic(topic_id)
+            os.system("clear")
+            print_topic(topic)
+            return
+        except KeyError:
+            print("That is not a valid index.")
+            return
     try:
         id = int(command_split[0])
         if current_page == "h":
