@@ -1,6 +1,6 @@
 # AReallyRandomCLI
 
-A TUI (and CLI) you to view Scratch forums in a command line interface. (I don't really care much about Scratch nor am I associated with their forums, it was just an excuse to use BeautifulSoup)
+A TUI (and CLI) you to view Scratch forums in a command line interface. I don't really care much about Scratch nor am I associated with their forums, it was just an excuse to use BeautifulSoup.
 
 ## Installation
 ```
@@ -15,7 +15,7 @@ You'll first see the forums homepage, to go to a forum, type the corresponding I
 
 Now, you'll be in a forum page. To go to the first topic, type #1 and press Enter. For the second topic, type #2, etc.
 
-The following shortcuts are available navigate the TUI:
+The following shortcuts are available for navigating the TUI:
 ```
 of [forum ID] = Opens a forum
 ot [topic ID] = Opens a topic
@@ -29,8 +29,8 @@ p [number] = Jumps to a specific page in a forum/topic
 [number] = Goes to the forum/topic with that ID
 ```
 
-### Using only the terminal
-You don't have to use the TUI. You can open the homepage, forums and topics using only the terminal.
+### Using only the CLI part
+Don't want to be stuck in the TUI? can open the homepage, forums and topics using only the terminal, without interacting with the TUI.
 
 Print out the homepage:
 ```
