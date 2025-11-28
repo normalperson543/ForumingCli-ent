@@ -1,5 +1,5 @@
 [project]
-name = "areallyrandomcli_normalperson543"
+name = "areallyrandomcli-normalperson543"
 version = "0.0.1"
 authors = [
   { name="normalperson543", email="octotwelve@hackclub.app" },
@@ -24,4 +24,4 @@ Homepage = "https://github.com/normalperson543/areallyrandomcli"
 Issues = "https://github.com/normalperson543/areallyrandomcli/issues"
 
 [project.scripts]
-areallyrandomcli = "areallyrandomcli.main:main"
+areallyrandomcli = "areallyrandomcli_normalperson543.main:main"
