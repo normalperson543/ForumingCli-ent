@@ -9,7 +9,7 @@ import sys
 def get_forum_home(suppress_request_msg = False):
     if not suppress_request_msg:
         print(colored("Get forum homepage", "blue"))
-    request = requests.get("https://scratch.mit.edu/discuss", verify=False)  # because of the stupid BYOD
+    request = requests.get("https://scratch.mit.edu/discuss")
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
     # print(soup)
@@ -69,7 +69,7 @@ def print_forum_info(categories: list):
 def get_forum(forum_id, page=1, suppress_request_msg = False):
     if not suppress_request_msg:
         print(colored(f"Get forum {forum_id}", "blue"))
-    request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}?page={page}", verify=False)
+    request = requests.get(f"https://scratch.mit.edu/discuss/{forum_id}?page={page}")
     req_text = request.text
     soup = BeautifulSoup(req_text, features="html.parser")
     topics = []
@@ -462,17 +462,6 @@ def accept_user_input():
             return
         print("You need to be a topic or forum to jump pages.")
         return
-    if command_split[0] == "s" and current_page == "t":
-        post_index = 0
-        try:
-            post_index = int(command_split[1])
-        except ValueError:
-            print("That is not a valid post index.")
-            return
-        if post_index < 1 or post_index > len(topic["posts"]) - 1:
-            print("That is not a valid post index.")
-            return
-        print_sig(topic, post_index)
     if command_split[0].find("#") == 0 and current_page == "f":
         try:
             index_to_get = int(command_split[0].split("#")[1])
@@ -547,13 +536,19 @@ if len(args) > 1:
             exit()
         print_forum(forum)
         exit()
-categories = get_forum_home()
-os.system("clear")
-current_page = "h"
-previous_forum = 0
-print_forum_info(categories)
-topic = {}
-forum = {}
-categories = {}
-while True:
-    accept_user_input()
+
+def main():
+    global current_page, previous_forum, topic, forum, categories
+    categories = get_forum_home()
+    os.system("clear")
+    current_page = "h"
+    previous_forum = 0
+    print_forum_info(categories)
+    topic = {}
+    forum = {}
+    categories = {}
+    while True:
+        accept_user_input()
+
+if __name__ == "__main__":
+    main()

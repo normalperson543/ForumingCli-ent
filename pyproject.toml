@@ -1,0 +1,27 @@
+[project]
+name = "areallyrandomcli_normalperson543"
+version = "0.0.1"
+authors = [
+  { name="normalperson543", email="octotwelve@hackclub.app" },
+]
+description = "Allows you to view Scratch forums in a command line interface"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+dependencies = [
+    "requests",
+    "bs4",
+    "termcolor"
+]
+
+[project.urls]
+Homepage = "https://github.com/normalperson543/areallyrandomcli"
+Issues = "https://github.com/normalperson543/areallyrandomcli/issues"
+
+[project.scripts]
+areallyrandomcli = "areallyrandomcli.main:main"
